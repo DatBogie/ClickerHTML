@@ -129,14 +129,27 @@ class shopItem {
             el.innerHTML = t;
         };
     };
-    constructor(_name="Shop Item",_desc="Shop Item",_price=0,_func=function(){console.log("Shop Item Purchased!")},__obj=new button,_id="") {
+    constructor(_name="Shop Item",_desc="Shop Item",_price=0,_pmul=1.2,_bought=function(){CPS++},_id="",__obj=new button) {
         this.name = _name;
         this.desc = _desc;
         this.price = _price;
+        this.owned=0;
         this._obj = __obj;
         this._obj.text = this.name
-        this.func = _func
-        this._obj.clickEvent = this.func
+        this.pmul = _pmul
+        this.bought = _bought
+        this.func = () => {
+            console.log(this.price);
+            if (COOKIES >= this.price) {
+                console.log(COOKIES-this.price);
+                this.bought();
+                updateCookies(COOKIES-this.price);
+                this.owned++;
+                this.price=Math.round(this.price*this.pmul);
+                this.updateText();
+            };
+        };
+        this._obj.clickEvent = this.func;
         if (_id && typeof(_id) == "string") {
             this.id = _id;
             this._obj._obj.elemData.id = _id;
@@ -152,18 +165,24 @@ class shopItem {
 };
 
 const shopItems = [
-    new shopItem("Auto Clicker Upgrade","Clicks Per Second +2",50,function(){if (COOKIES >= shopItems[0].price) {console.log(COOKIES-shopItems[0].price);CPS+=2;updateCookies(COOKIES-shopItems[0].price);shopItems[0].price=Math.round(shopItems[0].price*1.2);shopItems[0].updateText()}},new button,"cpc1"),
-    new shopItem("Click Upgrade","Click Power +1",100,function(){if (COOKIES >= shopItems[1].price) {console.log(COOKIES-shopItems[1].price);CPC+=1;updateCookies(COOKIES-shopItems[1].price);shopItems[1].price=Math.round(shopItems[1].price*1.4);shopItems[1].updateText()}},new button,"cps1")
+    new shopItem("Auto Clicker Upgrade","Clicks Per Second +2",50,1.2,function(){CPS+=2},"cpc1"),
+    new shopItem("Click Upgrade","Click Power +1",100,1.4,function(){CPC+=1},"cps1")
 ];
 
 const data = {};
 
+// Generate Save Code
 function getSaveCode() {
     let dataDict = {
         "COOKIES":COOKIES,
         "CPC":CPC,
-        "CPS":CPS
+        "CPS":CPS,
+        "OwnedItems":{} // "ItemName":amtOwned
     };
+    shopItems.forEach(item => {
+        console.log(item.owned);
+        dataDict.OwnedItems[item.name] = item.owned;
+    });
     if (Object.keys(data).length > 0) {
         dataDict = Object.assign({},dataDict,data);
     };
@@ -174,6 +193,7 @@ function getSaveCode() {
     return result;
 };
 
+// Load Save Code
 function loadSaveCode() {
     let code = prompt("Enter code");
     if (code && code.length > 0) {
@@ -183,14 +203,23 @@ function loadSaveCode() {
             COOKIES = dataDict["COOKIES"];
             CPC = dataDict["CPC"];
             CPS = dataDict["CPS"];
+            OwnedItems = dataDict["OwnedItems"];
+            shopItems.forEach(item => {
+                item.owned = OwnedItems[item.name];
+                if (item.owned > 0) {
+                    item.price*=(item.pmul*item.owned);
+                    item.updateText();
+                };
+            });
             for (const key in dataDict) {
                 let value = dataDict[key];
-                if (key != "COOKIES" && key != "CPC" && key != "CPS") {
-                    data[key] = value
+                if (key != "COOKIES" && key != "CPC" && key != "CPS" && key != "OwnedItems") {
+                    data[key] = value;
                 };
             };
         };
     };
+
 };
 
 // Code
