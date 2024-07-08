@@ -1,5 +1,5 @@
 // Building block classes
-const keys = {"Space":false};
+const keys = {"Control":false,"Space":false};
 class vector2 {
     x=0;
     y=0;
@@ -107,9 +107,13 @@ class button {
             el.onclick = this.clickEvent;
             el.onmouseenter = this.hoverEvent;
             el.onmouseleave = this.leaveEvent;
+            el.title = "Space";
         }
     };
 };
+
+document.getElementById("prompt").style.scale = 4;
+document.getElementById("prI").value = "";
 
 // Shop Items
 class shopItem {
@@ -169,6 +173,57 @@ const shopItems = [
     new shopItem("Click Upgrade","Click Power +1",100,1.4,function(){CPC+=1},"cps1")
 ];
 
+function openPrompt(title="Prompt",txt0="Confirm",txt1="Cancel",txti="",f0=closePrompt,f1=closePrompt) {
+    let x = document.getElementById("prompt");
+    if (x) {
+        // Set Data
+        let t = document.getElementById("prT");
+        let i = document.getElementById("prI");
+        let b0 = document.getElementById("pr0");
+        let b1 = document.getElementById("pr1");
+        t.innerHTML = title;
+        if (txti.length > 0) {
+            i.value = txti;
+        };
+        if (txt0.length > 0) {
+            b0.style.display = "block";
+            b0.innerHTML = txt0;
+            b0.onclick = f0;
+        } else {
+            b0.style.display = "none";
+        };
+        if (txt1.length > 0) {
+            b1.style.display = "block";
+            b1.innerHTML = txt1;
+            b1.onclick = f1;
+        } else {
+            b1.style.display = "none";
+        };
+        // Prep
+        x.style.pointerEvents = "all";
+        x.style.transition = 'all 0ms linear';
+        x.style.scale = 0;
+        x.style.opacity = 0;
+        x.offsetWidth;
+        // Open
+        x.style.transition = 'all 200ms cubic-bezier(0,1,.2,1.25)';
+        x.style.scale = 1;
+        x.style.opacity = 1;
+        // Finish
+        x.offsetWidth;
+        x.style.transition = 'all 200ms cubic-bezier(0,1,1,1)';
+    };
+}
+
+function closePrompt() {
+    let x = document.getElementById("prompt");
+    if (x) {
+        x.style.pointerEvents = "none"
+        x.style.scale = 4;
+        x.style.opacity = 0;
+    };
+};
+
 const data = {};
 
 // Generate Save Code
@@ -189,36 +244,85 @@ function getSaveCode() {
     let result = JSON.stringify(dataDict);
     result = btoa(result);
     console.log(result);
-    alert(result);
+    openPrompt("Save Code","Copy","Close",result,function(){
+        document.getElementById("prI").select();
+        document.getElementById("prI").setSelectionRange(0,result.length);
+        navigator.clipboard.writeText(result);
+    });
+    // alert(result);
     return result;
 };
 
 // Load Save Code
 function loadSaveCode() {
-    let code = prompt("Enter code");
-    if (code && code.length > 0) {
-        let decode = atob(code);
-        let dataDict = JSON.parse(decode);
-        if (dataDict) {
-            COOKIES = dataDict["COOKIES"];
-            CPC = dataDict["CPC"];
-            CPS = dataDict["CPS"];
-            OwnedItems = dataDict["OwnedItems"];
-            shopItems.forEach(item => {
-                item.owned = OwnedItems[item.name];
-                if (item.owned > 0) {
-                    item.price*=(item.pmul*item.owned);
-                    item.updateText();
+    // let code = prompt("Enter code");
+    openPrompt(
+        "Enter Save Code",
+        "Load",
+        "Cancel",
+        "",
+        function() {
+            let code = document.getElementById("prI").value;
+            console.log(code);
+            document.getElementById("loading").style.display = "block"
+            try {
+                if (code && code.length > 0) {
+                    let decode = atob(code);
+                    let dataDict = JSON.parse(decode);
+                    if (dataDict) {
+                        COOKIES = dataDict["COOKIES"];
+                        CPC = dataDict["CPC"];
+                        CPS = dataDict["CPS"];
+                        OwnedItems = dataDict["OwnedItems"];
+                        shopItems.forEach(item => {
+                            item.owned = OwnedItems[item.name];
+                            if (item.owned > 0) {
+                                item.price*=(item.pmul*item.owned);
+                                item.updateText();
+                            };
+                        });
+                        for (const key in dataDict) {
+                            let value = dataDict[key];
+                            if (key != "COOKIES" && key != "CPC" && key != "CPS" && key != "OwnedItems") {
+                                data[key] = value;
+                            };
+                        };
+                    };
                 };
-            });
-            for (const key in dataDict) {
-                let value = dataDict[key];
-                if (key != "COOKIES" && key != "CPC" && key != "CPS" && key != "OwnedItems") {
-                    data[key] = value;
-                };
+            } catch (error) {
+                document.getElementById("loading").innerHTML = "Invalid Code!"
             };
-        };
-    };
+            setTimeout(() => {
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("loading").innerHTML = "Loading..."
+            }, 1000);
+            closePrompt();
+        },
+
+    );
+    // if (code && code.length > 0) {
+    //     let decode = atob(code);
+    //     let dataDict = JSON.parse(decode);
+    //     if (dataDict) {
+    //         COOKIES = dataDict["COOKIES"];
+    //         CPC = dataDict["CPC"];
+    //         CPS = dataDict["CPS"];
+    //         OwnedItems = dataDict["OwnedItems"];
+    //         shopItems.forEach(item => {
+    //             item.owned = OwnedItems[item.name];
+    //             if (item.owned > 0) {
+    //                 item.price*=(item.pmul*item.owned);
+    //                 item.updateText();
+    //             };
+    //         });
+    //         for (const key in dataDict) {
+    //             let value = dataDict[key];
+    //             if (key != "COOKIES" && key != "CPC" && key != "CPS" && key != "OwnedItems") {
+    //                 data[key] = value;
+    //             };
+    //         };
+    //     };
+    // };
 
 };
 
@@ -290,26 +394,49 @@ setInterval(function() {
 },1000);
 
 window.addEventListener('keydown',function(key) {
+    if (key.code == "ControlLeft" || key.code == "ControlRight") {
+        keys["Control"] = true;
+    };
     if (key.key == "s") {
-        getSaveCode();
+        if (keys["Control"]) {
+            key.preventDefault();
+            getSaveCode();
+        };
     };
     if (key.key == "l") {
-        loadSaveCode();
+        if (keys["Control"]) {
+            key.preventDefault();
+            loadSaveCode();
+        };
     };
-    console.log(key)
+    if (key.key == "p") {
+        if (keys["Control"]) {
+            key.preventDefault();
+            openPrompt();
+        };
+    };
     if (key.code == "Space") {
+        let x = this.document.getElementById("prompt");
+        if (x && x.style.scale <= 1) {
+            return;
+        };
+        key.preventDefault();
+        // key.preventDefault();
         if (keys["Space"] == false) {
             clickCookie()
             keys["Space"] = true;
         };
     };
     if (key.code == "Tab") {
-        key.preventDefault()
+        key.preventDefault();
     };
 });
 
 window.addEventListener('keyup',function(key) {
     if (key.code == "Space") {
         keys["Space"] = false;
+    };
+    if (key.code == "ControlLeft" || key.code == "ControlRight") {
+        keys["Control"] = false;
     };
 });
