@@ -47,3 +47,35 @@ body {
     scale: .9;
     background-color: rgb(200, 200, 200);
 }
+
+#save {
+    width: 20vw;
+    height: 7vh;
+    margin-top: -7vh;
+    background-color: rgb(126, 126, 126);
+    overflow-x: hidden;
+    overflow-y: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#save button {
+    margin-top: auto;
+    width: 95%;
+    height: 100%;
+    background-color: rgb(230, 230, 230);
+    color: black;
+    cursor: pointer;
+    font-family: sans-serif;
+    font-size: 2vh;
+    transition: all 200ms cubic-bezier(0,1,1,1);
+}
+#save button:hover {
+    scale: 1.1;
+    background-color: rgb(255, 255, 255);
+}
+#save button:active {
+    scale: .9;
+    background-color: rgb(200, 200, 200);
+}
