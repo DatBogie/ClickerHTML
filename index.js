@@ -136,6 +136,7 @@ class shopItem {
     constructor(_name="Shop Item",_desc="Shop Item",_price=0,_pmul=1.2,_bought=function(){CPS++},_id="",__obj=new button) {
         this.name = _name;
         this.desc = _desc;
+        this.initPrice = _price;
         this.price = _price;
         this.owned=0;
         this._obj = __obj;
@@ -277,6 +278,7 @@ function loadSaveCode() {
                         shopItems.forEach(item => {
                             item.owned = OwnedItems[item.name];
                             if (item.owned > 0) {
+                                item.price = item.initPrice;
                                 item.price*=(item.pmul*item.owned);
                                 item.updateText();
                             };
