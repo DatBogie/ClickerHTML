@@ -1,3 +1,27 @@
+window.onpageshow= function() {
+    console.log(window.location.hash);
+    let x = document.getElementById("loading");
+    if (x && window.location.hash == "#s") {
+        window.location.hash = "";
+        x.style.display = "block";
+        x.innerHTML = "";
+        x.style.backgroundColor = "rgba(0,0,0,0)";
+        x.style.transition = 'backdrop-filter 200ms cubic-bezier(0,1,1,1)';
+        window.getComputedStyle(x).transition;
+        setTimeout(() => {
+            x.style.backdropFilter = 'blur(0px)';
+            window.getComputedStyle(x).transition;
+            x.style.transition = 'all 0ms linear';
+            setTimeout(() => {
+                x.style.display = "none";
+                x.style.backdropFilter = 'blur(5px)';
+                x.style.backgroundColor = "rgba(0,0,0,0.63)";
+                x.innerHTML = "Loading...";
+            }, 200);
+        },200);
+    };
+};
+
 // Building block classes
 const keys = {"Control":false,"Space":false};
 class vector2 {
