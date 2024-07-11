@@ -1,9 +1,5 @@
 window.onpageshow= function() {
     console.log(window.location.hash);
-    let y = document.getElementById("bsave");
-    if (y) {
-        y.innerHTML = window.location.hash;
-    };
     let x = document.getElementById("loading");
     if (x && window.location.hash == "#s") {
         window.location.hash = "";
