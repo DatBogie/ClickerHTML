@@ -304,8 +304,10 @@ function loadSaveCode() {
                             if (item.owned > 0) {
                                 item.price = item.initPrice;
                                 item.price*=(item.pmul*item.owned);
-                                item.updateText();
+                            } else {
+                                item.price = item.initPrice;
                             };
+                            item.updateText();
                         });
                         for (const key in dataDict) {
                             let value = dataDict[key];
