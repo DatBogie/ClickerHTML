@@ -153,11 +153,11 @@ class shopItem {
         if (x != "") {
             el.innerHTML = x;
         } else {
-            let t = this.name + " (" + this.price.toString() + "C)";
+            let t = `${this.name} (${readableNum(this.price)}C)`;
             el.innerHTML = t;
         };
     };
-    constructor(_name="Shop Item",_desc="Shop Item",_price=0,_pmul=1.2,_bought=function(){CPS++},_id="",__obj=new button) {
+    constructor(_name="Shop Item",_desc="Shop Item",_price=0,_pmul=1.2,_bought=function(){CPS++},_id="",__obj=new button) { //pmul: float|function
         this.name = _name;
         this.desc = _desc;
         this.initPrice = _price;
@@ -174,7 +174,11 @@ class shopItem {
                 this.bought();
                 updateCookies(COOKIES-this.price);
                 this.owned++;
-                this.price=Math.round(this.price*this.pmul);
+                if (typeof(this.pmul) == "number") {
+                    this.price=Math.round(this.price*this.pmul);
+                } else if (typeof(this.pmul) == "function") {
+                    this.price = this.pmul(this);
+                };
                 this.updateText();
             };
         };
@@ -194,8 +198,9 @@ class shopItem {
 };
 
 const shopItems = [
-    new shopItem("Auto Clicker Upgrade","Clicks Per Second +2",50,1.2,function(){CPS+=2},"cpc1"),
-    new shopItem("Click Upgrade","Click Power +1",100,1.4,function(){CPC+=1},"cps1")
+    new shopItem("Auto Clicker","+5 CPS",50,1.2,function(){CPS+=(5*CPSV)},"cps1"),
+    new shopItem("Super Click","+1 CPC",100,1.4,function(){CPC+=(1*CPCV)},"cpc1"),
+    new shopItem("Doubly Efficient Auto Clickers","Double CPS, +1 CPSV",1000,2,function(){CPS*=2;CPSV+=1},"cps2")
 ];
 
 function openPrompt(title="Prompt",txt0="Confirm",txt1="Cancel",txti="",f0=closePrompt,f1=closePrompt) {
@@ -256,7 +261,9 @@ function getSaveCode() {
     let dataDict = {
         "COOKIES":COOKIES,
         "CPC":CPC,
+        "CPCV":CPCV,
         "CPS":CPS,
+        "CPSV":CPSV,
         "OwnedItems":{} // "ItemName":amtOwned
     };
     shopItems.forEach(item => {
@@ -297,14 +304,27 @@ function loadSaveCode() {
                     if (dataDict) {
                         COOKIES = dataDict["COOKIES"];
                         CPC = dataDict["CPC"];
+                        CPCV = (("CPCV" in dataDict) ? dataDict["CPCV"] : 1);
                         CPS = dataDict["CPS"];
+                        CPSV = (("CPSV" in dataDict) ? dataDict["CPSV"] : 1);
                         OwnedItems = dataDict["OwnedItems"];
                         shopItems.forEach(item => {
-                            item.owned = OwnedItems[item.name];
-                            if (item.owned > 0) {
-                                item.price = item.initPrice;
-                                item.price*=(item.pmul*item.owned);
+                            if (item.name in OwnedItems) {
+                                item.owned = OwnedItems[item.name];
+                                if (item.owned > 0) {
+                                    item.price = item.initPrice;
+                                    if (typeof(item.pmul) == "number") {
+                                        item.price*=(item.pmul*item.owned);
+                                    } else if (typeof(item.pmul) == "function") {
+                                        for (let i = 0; i < item.owned; i++) {
+                                            item.price = item.pmul(item);
+                                        }
+                                    };
+                                } else {
+                                    item.price = item.initPrice;
+                                };
                             } else {
+                                item.owned = 0;
                                 item.price = item.initPrice;
                             };
                             item.updateText();
@@ -357,12 +377,45 @@ function loadSaveCode() {
 // Code
 var COOKIES = 0;
 var CPC = 1;
+var CPCV = 1;
 var CPS = 0;
+var CPSV = 1;
+function readableNum(n = 0) {
+    const largeNumbers = [
+        { name: "K", value: 1e3 },          // Thousand
+        { name: "M", value: 1e6 },          // Million
+        { name: "B", value: 1e9 },          // Billion
+        { name: "T", value: 1e12 },         // Trillion
+        { name: "Qa", value: 1e15 },        // Quadrillion
+        { name: "Qi", value: 1e18 },        // Quintillion
+        { name: "Sx", value: 1e21 },        // Sextillion
+        { name: "Sp", value: 1e24 },        // Septillion
+        { name: "Oc", value: 1e27 },        // Octillion
+        { name: "N", value: 1e30 },         // Nonillion
+        { name: "Dc", value: 1e33 }         // Decillion
+    ];
+    let y = "";
+    for (let i = largeNumbers.length - 1; i >= 0; i--) {
+        if (n >= largeNumbers[i].value) {
+            y = largeNumbers[i].name;
+            n = (n / largeNumbers[i].value).toFixed(2); // Adjusts the number to one decimal place
+            break;
+        }
+    }
+    return n + y;
+}
 function updateCookies(x=0) {
     let el = document.getElementById('tcookie');
     if (el && typeof(x) == "number") {
         COOKIES = x;
-        el.innerHTML = "Cookies: " + COOKIES.toString() + "C";
+        let r_COOKIES = readableNum(COOKIES.toString());
+        let r_CPS = readableNum(CPS);
+        let r_CPC = readableNum(CPC);
+        let r_CPSV = readableNum(CPSV);
+        let r_CPCV = readableNum(CPCV);
+        // el.innerHTML = ("Cookies: " + COOKIES.toString() + "C") + "<br>" + ("CPS: " + CPS.toString()) + "<br>" + ("CPC: " + CPC.toString());
+        el.innerHTML = `${r_COOKIES}C<br>${r_CPS}C/s<br>${r_CPC}C/c<br>${r_CPSV}xCPS<br>${r_CPCV}xCPC`;
+        el.title = `${COOKIES} ${((COOKIES != 1) ? "Cookies" : "Cookie")} (C)\n${CPS} ${((CPS != 1) ? "Cookies" : "Cookie")} Per Second (CPS)\n${CPC} ${((CPC != 1) ? "Cookies" : "Cookie")} Per Click (CPC)\n${CPSV}x CPS Value Multiplier (CPSV)\n${CPCV}x CPC Value Multiplier (CPCV)`;
     };
 };
 updateCookies()
@@ -377,7 +430,7 @@ function clickCookie() {
             if (el) {
                 el.style.backgroundColor = "";
                 el.style.scale = "1";
-            }
+            };
         }, 100);
     };
 };
@@ -455,7 +508,7 @@ window.addEventListener('keydown',function(key) {
             keys["Space"] = true;
         };
     };
-    if (key.code == "Tab") {
+    if (key.code == "Tab" || key.code == "Enter" || key.code == "NumpadEnter") {
         key.preventDefault();
     };
 });
