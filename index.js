@@ -510,18 +510,26 @@ function updateCookies(x=0) {
 };
 updateCookies()
 
+var clickCooldown = false;
+
 function clickCookie() {
-    updateCookies(COOKIES + CPC);
-    let el = document.getElementById('cookie');
-    if (el) {
-        el.style.backgroundColor = "rgb(77, 50, 3)";
-        el.style.scale = ".75";
-        setTimeout(function() {
-            if (el) {
-                el.style.backgroundColor = "";
-                el.style.scale = "1";
-            };
-        }, 100);
+    if (!clickCooldown) {
+        clickCooldown = true;
+        updateCookies(COOKIES + CPC);
+        let el = document.getElementById('cookie');
+        if (el) {
+            el.style.backgroundColor = "rgb(77, 50, 3)";
+            el.style.scale = ".75";
+            setTimeout(() => {
+                clickCooldown = false;
+            }, 70);
+            setTimeout(function() {
+                if (el) {
+                    el.style.backgroundColor = "";
+                    el.style.scale = "1";
+                };
+            }, 100);
+        };
     };
 };
 
