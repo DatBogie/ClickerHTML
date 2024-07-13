@@ -415,7 +415,7 @@ function updateCookies(x=0) {
         let r_CPCV = readableNum(CPCV);
         // el.innerHTML = ("Cookies: " + COOKIES.toString() + "C") + "<br>" + ("CPS: " + CPS.toString()) + "<br>" + ("CPC: " + CPC.toString());
         el.innerHTML = `${r_COOKIES}C<br>${r_CPS}C/s<br>${r_CPC}C/c<br>${r_CPSV}xCPS<br>${r_CPCV}xCPC`;
-        el.title = `${COOKIES} ${((COOKIES != 1) ? "Cookies" : "Cookie")} (C)\n${CPS} ${((CPS != 1) ? "Cookies" : "Cookie")} Per Second (CPS)\n${CPC} ${((CPC != 1) ? "Cookies" : "Cookie")} Per Click (CPC)\n${CPSV}x CPS Value Multiplier (CPSV)\n${CPCV}x CPC Value Multiplier (CPCV)`;
+        el.title = `${COOKIES} ${((COOKIES != 1) ? "Clicks" : "Click")} (C)\n${CPS} ${((CPS != 1) ? "Clicks" : "Click")} Per Second (CPS)\n${CPC} ${((CPC != 1) ? "Clicks" : "Click")} Per Click (CPC)\n${CPSV}x CPS Value Multiplier (CPSV)\n${CPCV}x CPC Value Multiplier (CPCV)`;
     };
 };
 updateCookies()
